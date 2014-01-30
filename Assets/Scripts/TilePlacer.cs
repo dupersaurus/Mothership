@@ -10,7 +10,7 @@ public class TilePlacer : MonoBehaviour {
     private Camera m_camera;
     private Transform m_transform;
 
-    private Room m_dragging;
+    private GhostRoom m_ghostRoom;
     private Vector2 m_lastMousePos = Vector2.zero;
 
     private Dictionary<int, List<Room>> m_roomMaster;
@@ -32,6 +32,7 @@ public class TilePlacer : MonoBehaviour {
         Room tile;
         bool bFound = false;
 
+        // Mouse press
         if (Input.GetMouseButtonDown(0) && UICamera.hoveredObject == null) {
 
             // Create mode: create new tile at mouse point
@@ -44,18 +45,25 @@ public class TilePlacer : MonoBehaviour {
             }
 
             if (!bFound) {
-                m_dragging = CreateNewRoom(ray.origin, m_types.items.IndexOf(m_types.selection));
+                m_ghostRoom = CreateGhostRoom(ray.origin, m_types.items.IndexOf(m_types.selection));
             }
         }
 
-        if (Input.GetMouseButtonUp(0)) {
-            m_dragging = null;
+        // Mouse release
+        if (Input.GetMouseButtonUp(0) && m_ghostRoom != null) {
+            if (m_ghostRoom.IsValid) {
+                CreateNewRoom(m_ghostRoom.transform.position, m_ghostRoom.GetCellBounds(), m_ghostRoom.TypeId);
+            }
+
+            Destroy(m_ghostRoom.gameObject);
+            m_ghostRoom = null;
         }
 
+        // Mouse drag
         Vector2 mouseGrid = SnapWorldToGrid(ray.origin);
 
-        if (Input.GetMouseButton(0) && m_dragging != null && mouseGrid != m_lastMousePos) {
-            m_dragging.ExpandTo(mouseGrid);
+        if (Input.GetMouseButton(0) && m_ghostRoom != null && mouseGrid != m_lastMousePos) {
+            m_ghostRoom.ExpandTo(mouseGrid);
         }
 
         m_lastMousePos = mouseGrid;
@@ -65,20 +73,31 @@ public class TilePlacer : MonoBehaviour {
     /// Create a new room at a given position with a given type
     /// </summary>
     /// <param name="iId"></param>
-    private Room CreateNewRoom(Vector3 position, int iId) {
+    private Room CreateNewRoom(Vector3 position, Rect cellBounds, int iId) {
         Room room = (Instantiate(Resources.Load("Room")) as GameObject).GetComponent<Room>();
 
         if (room == null) {
             return null;
         }
 
-        room.Create(SnapWorldToGrid(position), iId);
+        room.Create(SnapWorldToGrid(position), cellBounds, iId);
 
         if (!m_roomMaster.ContainsKey(iId)) {
             m_roomMaster[iId] = new List<Room>();
         }
 
         m_roomMaster[iId].Add(room);
+        return room;
+    }
+
+    private GhostRoom CreateGhostRoom(Vector3 position, int iId) {
+        GhostRoom room = (Instantiate(Resources.Load("Ghost Room")) as GameObject).GetComponent<GhostRoom>();
+
+        if (room == null) {
+            return null;
+        }
+
+        room.Create(SnapWorldToGrid(position), iId);
         return room;
     }
 

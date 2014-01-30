@@ -41,7 +41,7 @@ public class Room : MonoBehaviour {
 
     protected Transform m_transform;
 
-    private List<GameObject> m_cells;
+    protected List<GameObject> m_cells;
 
     private Vector3 m_dragOffset = Vector3.zero;
 
@@ -82,14 +82,35 @@ public class Room : MonoBehaviour {
             box.center = Vector3.zero;
         }
 
-        /*BoxCollider box = gameObject.AddComponent<BoxCollider>();
-        box.size = new Vector3(m_gridSize.x, m_gridSize.y, 1);
-        box.center = new Vector3((m_gridSize.x - 1) * 0.5f, (m_gridSize.y - 1) * -0.5f, 0);*/
+        //m_cellBounds = new Rect(0, 0, 0, 0);
 
-        m_cellBounds = new Rect(0, 0, 0, 0);
-        //m_cellBounds = new Rect(m_transform.position.x - HALF_TILE_SIZE, m_transform.position.y + HALF_TILE_SIZE, m_gridSize.x + HALF_TILE_SIZE, m_gridSize.y + HALF_TILE_SIZE);
-
+        SetCellSize(new Rect(0, 0, 0, 0));
         MoveTo(position.x, position.y);
+    }
+
+    public void Create(Vector2 position, Rect cellSize, int iTypeIndex) {
+        Create(position, iTypeIndex);
+        SetCellSize(cellSize);
+    }
+
+    /// <summary>
+    /// Sets the cells of the room to a new size
+    /// </summary>
+    /// <param name="newBounds"></param>
+    protected void SetCellSize(Rect newBounds) {
+        // Scale single cell to fit the rectangle...
+        Transform cell = m_cells[0].transform;
+
+        cell.localPosition = newBounds.center;
+        cell.localScale = new Vector3(newBounds.width + 1f, newBounds.height + 1f, 1);
+
+        m_cellBounds = newBounds;
+
+        // Check valid
+        newBounds.center += ((Vector2)transform.position - new Vector2(HALF_TILE_SIZE, HALF_TILE_SIZE));
+        newBounds.width += TILE_SIZE;
+        newBounds.height += TILE_SIZE;
+        m_collisionBounds = newBounds;
     }
 
     public bool IsLocked {
@@ -120,110 +141,6 @@ public class Room : MonoBehaviour {
         transform.position = new Vector3(fX, fY, 0) - m_dragOffset;
     }
 
-    /// <summary>
-    /// Expands the tile bounds to a given world position, snapped to the grid
-    /// </summary>
-    /// <param name="pos">World position, snapped to the grid</param>
-    public void ExpandTo(Vector2 pos) {
-        
-        // Mouse position relative to the origin
-        Vector2 drag = pos - (Vector2)m_transform.position;
-
-        // Rectange defined by the mouse and the origin, the new room size
-        Rect newBounds = new Rect();
-
-        if (drag.x < 0) {
-            newBounds.xMin = drag.x;
-            newBounds.xMax = 0;
-        } else {
-            newBounds.xMin = 0;
-            newBounds.xMax = drag.x;
-        }
-
-        if (drag.y < 0) {
-            newBounds.yMin = drag.y;
-            newBounds.yMax = 0;
-        } else {
-            newBounds.yMin = 0;
-            newBounds.yMax = drag.y;
-        }
-
-        // Scale single cell to fit the rectangle...
-        Transform cell = m_cells[0].transform;
-
-        cell.localPosition = newBounds.center;
-        cell.localScale = new Vector3(newBounds.width + 1f, newBounds.height + 1f, 1);
-
-        m_cellBounds = newBounds;
-        Debug.Log("Cell >> " + m_cellBounds);
-
-        // Check valid
-        newBounds.center += ((Vector2)transform.position - new Vector2(HALF_TILE_SIZE, HALF_TILE_SIZE));
-        newBounds.width += TILE_SIZE;
-        newBounds.height += TILE_SIZE;
-        m_collisionBounds = newBounds;
-
-        Debug.Log("Collision >> " + m_collisionBounds + ", Cell >> " + m_cellBounds);
-
-        RoomConflictType conflict = Ship.CheckPlacement(this, m_collisionBounds);
-
-        if (conflict == RoomConflictType.Valid) {
-            cell.GetComponent<MeshRenderer>().material.color = GetRoomColor();
-        } else {
-            cell.GetComponent<MeshRenderer>().material.color = Color.red;
-        }
-
-        /*BoxCollider box = gameObject.GetComponent<BoxCollider>();
-        box.center = cell.localPosition;
-        box.size = cell.localScale;*/
-
-        // ...OR fill in and trim the existing tiles to fit the new rectangle
-
-        /* // Possibly better way, if more complicated
-        Vector2 newBounds = pos - (Vector2)m_transform.position;
-        bool bTrim = false;
-
-        // Expand right
-        if (newBounds.x > 0) {
-            if (newBounds.x > m_cellBounds.xMax) {
-                for (int i = 0; i < m_cellBounds.height + 1; i++) {
-                    CreateCell(new Vector3((m_cellBounds.xMax + 1) * TILE_SIZE, m_cellBounds.yMax - i * TILE_SIZE, 0));
-                }
-
-                m_cellBounds.xMax++;
-            }
-        } else if (newBounds.x < 0) {
-            bTrim = true;
-            m_cellBounds.xMax--;
-        }
-
-        // Expand down
-        if (newBounds.y < 0) {
-            if (newBounds.y < m_cellBounds.yMin) {
-                for (int i = 0; i < m_cellBounds.width + 1; i++) {
-                    CreateCell(new Vector3(m_cellBounds.xMin + i * TILE_SIZE, (m_cellBounds.yMin - 1) * TILE_SIZE, 0));
-                }
-
-                m_cellBounds.yMin--;
-            }
-        } else if (newBounds.y > 0) {
-            bTrim = true;
-            m_cellBounds.yMin++;
-        }*/
-
-        // Y
-        /*if (diff.y > 0) {
-
-        } else if (diff.y < 0) {
-            bTrim = true;
-        }
-
-        // Bottom corner
-        if (diff.x > 0 && diff.y > 0) {
-
-        }*/
-    }
-
     private GameObject CreateCell(Vector3 pos) {
         if (m_cellPrefab == null) {
             m_cellPrefab = Resources.Load("Room Cell");
@@ -237,13 +154,15 @@ public class Room : MonoBehaviour {
         cell.transform.parent = m_transform;
         cell.transform.localPosition = pos;
 
-        cell.GetComponent<MeshRenderer>().material.color = GetRoomColor();
+        Material material = cell.GetComponent<MeshRenderer>().material;
+        material.color = GetRoomColor();
+        material.shader = Shader.Find("Transparent/Diffuse");
 
         m_cells.Add(cell);
         return cell;
     }
 
-    protected override Color GetRoomColor() {
+    protected virtual Color GetRoomColor() {
         Random.seed = m_iRoomType;
         return new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 1);
     }
