@@ -98,9 +98,10 @@ public class Room : MonoBehaviour {
     /// </summary>
     /// <param name="newBounds"></param>
     protected void SetCellSize(Rect newBounds) {
-        // Scale single cell to fit the rectangle...
-        Transform cell = m_cells[0].transform;
+        SetCellSize(m_cells[0].transform, newBounds);
+    }
 
+    protected void SetCellSize(Transform cell, Rect newBounds) {
         cell.localPosition = newBounds.center;
         cell.localScale = new Vector3(newBounds.width + 1f, newBounds.height + 1f, 1);
 
