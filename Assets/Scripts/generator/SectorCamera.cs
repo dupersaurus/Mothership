@@ -62,7 +62,7 @@ public class SectorCamera : MonoBehaviour {
 
         // Z pan
         float fScroll = Input.GetAxis("Mouse ScrollWheel");
-		float fDiff;
+		float fDiff = m_zoomRate;
 
         if (fScroll != 0 && (camPos.z < m_closestCamZ || fScroll < 0)) {
             /*camPos.z += fScroll * m_zoomRate * Time.deltaTime;
@@ -73,11 +73,11 @@ public class SectorCamera : MonoBehaviour {
 
 			// Approach but don't pass closest
 			if (fScroll < 0) {
-				fDiff = (camPos.z - m_closestCamZ) / 2;
+				/*fDiff = (camPos.z - m_closestCamZ) / 2;
 
 				if (fDiff > m_zoomRate) {
 					fDiff = m_zoomRate;
-				}
+				}*/
 
 				camPos.z += fScroll * fDiff * Time.deltaTime;
 
@@ -88,11 +88,11 @@ public class SectorCamera : MonoBehaviour {
 
 			// Approach but don't pass farthest
 			else {
-				fDiff = (m_farthestCamZ - camPos.z) / 2;
+				/*fDiff = (m_farthestCamZ - camPos.z) / 2;
 				
 				if (fDiff > m_zoomRate) {
 					fDiff = m_zoomRate;
-				}
+				}*/
 				
 				camPos.z += fScroll * fDiff * Time.deltaTime;
 				
