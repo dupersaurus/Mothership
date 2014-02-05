@@ -18,6 +18,7 @@ public class SectorCamera : MonoBehaviour {
     public float m_panRate;
     public float m_zoomRate;
     public float m_closestCamZ;
+	public float m_farthestCamZ;
 
     void Awake() {
         m_instance = this;
@@ -61,13 +62,44 @@ public class SectorCamera : MonoBehaviour {
 
         // Z pan
         float fScroll = Input.GetAxis("Mouse ScrollWheel");
+		float fDiff;
 
-        if (fScroll != 0 && camPos.z < m_closestCamZ) {
-            camPos.z += fScroll * m_zoomRate * Time.deltaTime;
+        if (fScroll != 0 && (camPos.z < m_closestCamZ || fScroll < 0)) {
+            /*camPos.z += fScroll * m_zoomRate * Time.deltaTime;
 
-            if (camPos.z >= m_closestCamZ) {
+            if (fScroll > 0 && camPos.z >= m_closestCamZ) {
                 camPos.z = m_closestCamZ;
-            }
+            }*/
+
+			// Approach but don't pass closest
+			if (fScroll < 0) {
+				fDiff = (camPos.z - m_closestCamZ) / 2;
+
+				if (fDiff > m_zoomRate) {
+					fDiff = m_zoomRate;
+				}
+
+				camPos.z += fScroll * fDiff * Time.deltaTime;
+
+				if (camPos.z > m_closestCamZ) {
+					camPos.z = m_closestCamZ;
+				}
+			}
+
+			// Approach but don't pass farthest
+			else {
+				fDiff = (m_farthestCamZ - camPos.z) / 2;
+				
+				if (fDiff > m_zoomRate) {
+					fDiff = m_zoomRate;
+				}
+				
+				camPos.z += fScroll * fDiff * Time.deltaTime;
+				
+				if (camPos.z < m_farthestCamZ) {
+					camPos.z = m_farthestCamZ;
+				}
+			}
 
             bUpdateView = true;
         }

@@ -1,0 +1,14 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/generator/Star.cs">
+    <Files>
+      <File FileName="Assets/Scripts/generator/SectorGenerator.cs" Line="55" Column="68" />
+      <File FileName="Assets/Scripts/generator/SectorCamera.cs" Line="91" Column="14" />
+      <File FileName="Assets/Scripts/generator/Star.cs" Line="9" Column="36" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>

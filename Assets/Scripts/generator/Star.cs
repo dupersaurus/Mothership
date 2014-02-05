@@ -1,6 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+public class SystemBody {
+	public float MajorAxis;
+	public float MinorAxis;
+}
+
 public class Star : MonoBehaviour {
 
     // From wiki
@@ -25,8 +30,12 @@ public class Star : MonoBehaviour {
     private Transform m_transform;
     private Material m_material;
 
+	public int Seed {
+		get { return m_iSeed; }
+	}
+
     /// <summary>
-    /// Randomly sets the star up
+    /// NOT SEED SAFE Randomly sets the star up
     /// </summary>
     /// <param name="iSeed">The seed to use for the star and its solar system</param>
     public void Setup(int iSeed) {
