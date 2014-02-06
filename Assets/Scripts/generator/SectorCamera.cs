@@ -20,6 +20,8 @@ public class SectorCamera : MonoBehaviour {
     public float m_closestCamZ;
 	public float m_farthestCamZ;
 
+    public UI m_ui;
+
     void Awake() {
         m_instance = this;
         m_camera = camera;
@@ -109,6 +111,7 @@ public class SectorCamera : MonoBehaviour {
             newView = CalculateViewArea();
 
             // TODO send the view delta to the renderer
+            m_ui.UpdateView();
 
             m_viewArea = newView;
         }

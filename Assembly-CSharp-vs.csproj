@@ -135,12 +135,14 @@
      <Compile Include="Assets\Scripts\Room.cs" />
      <Compile Include="Assets\Scripts\RoomInfo.cs" />
      <Compile Include="Assets\Scripts\TilePlacer.cs" />
+     <Compile Include="Assets\Scripts\generator\Galaxy.cs" />
      <Compile Include="Assets\Scripts\generator\Planet.cs" />
      <Compile Include="Assets\Scripts\generator\SectorCamera.cs" />
      <Compile Include="Assets\Scripts\generator\SectorGenerator.cs" />
      <Compile Include="Assets\Scripts\generator\SolarSystem.cs" />
      <Compile Include="Assets\Scripts\generator\SolarSystemBody.cs" />
      <Compile Include="Assets\Scripts\generator\Star.cs" />
+     <Compile Include="Assets\Scripts\ui\UI.cs" />
      <None Include="Assets\NGUI\Resources\Shaders\Unlit - Depth Cutout.shader" />
      <None Include="Assets\NGUI\Resources\Shaders\GUI - Text Shader (SoftClip).shader" />
      <None Include="Assets\NGUI\Resources\Shaders\Unlit - Dynamic Font (AlphaClip).shader" />

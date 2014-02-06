@@ -19,8 +19,16 @@ public class SectorGenerator : MonoBehaviour {
 
     private List<Star> m_stars;
 
+    /// <summary>The bounds of the sector, in galaxy space</summary>
+    private Rect m_bounds;
+
+    /// <summary>The bounds of the sector, in galaxy space</summary>
+    public Rect Bounds {
+        get { return m_bounds; }
+    }
+
     void Start() {
-        Setup(m_testX, m_testY, m_testSeed);
+        //Setup(m_testX, m_testY, m_testSeed);
     }
 
     /// <summary>
@@ -29,6 +37,8 @@ public class SectorGenerator : MonoBehaviour {
     /// <param name="area">Rectangle defining the sector's bounds for perlin generation</param>
     /// <param name="iSeed">The sector's seed. Everything random in the sector starts with this.</param>
     public void Setup(int iSectorX, int iSectorY, int iSeed) {
+        name = "Sector (" + iSectorX + ", " + iSectorY + ")";
+
         m_starPrefab = Resources.Load("Star") as GameObject;
         m_stars = new List<Star>();
         m_transform = transform;
@@ -41,8 +51,9 @@ public class SectorGenerator : MonoBehaviour {
         float fXZero = m_sectorSize.x * iSectorX;
         float fYZero = m_sectorSize.y * iSectorY;
         m_transform.position = new Vector3(fXZero, fYZero);
+        m_bounds = new Rect(fXZero - m_sectorSize.x * 0.5f, fYZero + m_sectorSize.y * 0.5f, m_sectorSize.x, -m_sectorSize.y);
 
-        Rect area = new Rect(fXZero - m_sectorSize.x * 0.5f, fYZero + m_sectorSize.y * 0.5f, m_sectorSize.x, -m_sectorSize.y);
+		Rect area = m_bounds; //new Rect(fXZero - m_sectorSize.x * 0.5f, fYZero + m_sectorSize.y * 0.5f, m_sectorSize.x, -m_sectorSize.y);
 
         float xLeft = Mathf.Floor(area.xMin);
         float xRight = Mathf.Ceil(area.xMax);
@@ -105,13 +116,25 @@ public class SectorGenerator : MonoBehaviour {
         return m_sampleIncrement * Random.value - m_sampleIncrement * 0.5f;
     }
 
-    void OnMouseDown() {
-        Star star = m_stars[42];
+    /// <summary>
+    /// Returns a list of interesting objects in the sector that match a given scan radius
+    /// </summary>
+    /// <param name="from">The position, in world space, the request is from</param>
+    /// <param name="fDistanceSqr">Max search distance, as distance squared</param>
+    /// <param name="fStrength">Strength of the search signal</param>
+    /// <returns></returns>
+    public List<Star> SearchInterests(Vector3 from, float fDistanceSqr, float fStrength) {
+        List<Star> matches = new List<Star>();
+		float fDist;
 
-        SolarSystem solarSystem = (Instantiate(Resources.Load("Solar System")) as GameObject).GetComponent<SolarSystem>();
-        solarSystem.transform.position = new Vector3(0, 0, -1);
-        solarSystem.Setup(star);
+        for (int i = 0; i < m_stars.Count; i++) {
+			fDist = (m_stars[i].Position - from).sqrMagnitude;
 
-        NGUITools.SetActive(gameObject, false);
+            if (m_stars[i].IsInteresting && fDist <= fDistanceSqr) {
+                matches.Add(m_stars[i]);
+            }
+        }
+
+        return matches;
     }
 }
