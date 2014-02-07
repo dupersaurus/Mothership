@@ -87,21 +87,24 @@ public class Galaxy : MonoBehaviour {
     private void _ShowSolarSystem(Star star) {
         m_showSystemOf = star;
 
-        Vector3 target = Vector3.zero - star.Position;
-        target.z = -9f;
+        Vector3 target = star.Position;
+        target.z = -1;
 
-        TweenPosition tween = TweenPosition.Begin(gameObject, 2, target);
+        SectorCamera.MoveCameraTo(target, 2, BringInSolarSystem, SectorCamera.Instance.m_exitSectorToSystem);
+
+        /*TweenPosition tween = TweenPosition.Begin(gameObject, 2, target);
         tween.eventReceiver = gameObject;
-        tween.callWhenFinished = "BringInSolarSystem";
+        tween.callWhenFinished = "BringInSolarSystem";*/
     }
 
     private void BringInSolarSystem() {
+        Vector3 pos = m_showSystemOf.Position;
         SolarSystem solarSystem = (Instantiate(Resources.Load("Solar System")) as GameObject).GetComponent<SolarSystem>();
-        solarSystem.transform.position = new Vector3(0, 0, 200);
+        solarSystem.transform.position = new Vector3(pos.x, pos.y, 200);
         solarSystem.Setup(m_showSystemOf);
 
-        TweenPosition tween = TweenPosition.Begin(solarSystem.gameObject, 4, Vector3.zero);
-        tween.method = UITweener.Method.EaseOut;
+        pos.z = 140;
+        SectorCamera.MoveCameraTo(pos, 3, null, SectorCamera.Instance.m_enterSystemFromSector);
 
         NGUITools.SetActive(gameObject, false);
     }

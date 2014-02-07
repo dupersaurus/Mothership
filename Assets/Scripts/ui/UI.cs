@@ -2,68 +2,77 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class UI : MonoBehaviour {
+namespace Mothership.UI {
 
-    public Camera m_worldCamera;
-    public GameObject m_markerParent;
+    public class UI : MonoBehaviour {
 
-    private UICamera m_camera;
-    private GameObject m_interestMarkerPrefab;
+        public Camera m_worldCamera;
+        public GameObject m_markerParent;
 
-    private List<Star> m_lastScan;
-    private List<GameObject> m_markers;
+        private UICamera m_camera;
+        private GameObject m_interestMarkerPrefab;
 
-	// Use this for initialization
-	void Start () {
-        m_camera = GetComponentInChildren<UICamera>();
-        m_interestMarkerPrefab = Resources.Load("UI/Interest Marker") as GameObject;
+        private List<Star> m_lastScan;
+        private List<GameObject> m_markers;
 
-        m_markers = new List<GameObject>();
-	}
+        // Use this for initialization
+        void Start() {
+            m_camera = GetComponentInChildren<UICamera>();
+            m_interestMarkerPrefab = Resources.Load("UI/Interest Marker") as GameObject;
 
-    private void InitiateScan() {
-        ClearMarkers();
+            m_markers = new List<GameObject>();
 
-        m_lastScan = Galaxy.SearchInterests();
-        GameObject marker;
-
-        for (int i = 0; i < m_lastScan.Count; i++) {
-            marker = NGUITools.AddChild(m_markerParent, m_interestMarkerPrefab);
-            m_markers.Add(marker);
-
-            marker.GetComponent<UIButtonMessage>().target = gameObject;
+            SectorCamera.OnViewChange += UpdateView;
         }
 
-        UpdateView();
-    }
+        void OnDestroy() {
+            SectorCamera.OnViewChange -= UpdateView;
+        }
 
-    public void UpdateView() {
-        Vector3 viewport;
+        private void InitiateScan() {
+            ClearMarkers();
 
-        for (int i = 0; i < m_markers.Count; i++) {
-            viewport = m_worldCamera.camera.WorldToViewportPoint(m_lastScan[i].transform.position);
-            //Debug.Log("Viewport >> " + viewport);
+            m_lastScan = Galaxy.SearchInterests();
+            GameObject marker;
 
-            viewport.x *= m_camera.camera.pixelWidth;
-            viewport.y *= m_camera.camera.pixelHeight;
-            //viewport.y += m_camera.camera.pixelHeight;
-            viewport.z = 0;
-            //Debug.Log("  Screen >> " + viewport + " (" + m_camera.camera.pixelWidth + ", " + m_camera.camera.pixelHeight + ")");
+            for (int i = 0; i < m_lastScan.Count; i++) {
+                marker = NGUITools.AddChild(m_markerParent, m_interestMarkerPrefab);
+                m_markers.Add(marker);
 
-            m_markers[i].transform.localPosition = viewport;
+                marker.GetComponent<UIButtonMessage>().target = gameObject;
+            }
+
+            UpdateView(Vector3.zero, new Rect());
+        }
+
+        public void UpdateView(Vector3 pos, Rect view) {
+            Vector3 viewport;
+
+            for (int i = 0; i < m_markers.Count; i++) {
+                viewport = m_worldCamera.camera.WorldToViewportPoint(m_lastScan[i].transform.position);
+                //Debug.Log("Viewport >> " + viewport);
+
+                viewport.x *= m_camera.camera.pixelWidth;
+                viewport.y *= m_camera.camera.pixelHeight;
+                viewport.z = 0;
+                //Debug.Log("  Screen >> " + viewport + " (" + m_camera.camera.pixelWidth + ", " + m_camera.camera.pixelHeight + ")");
+
+                m_markers[i].transform.localPosition = viewport;
+            }
+        }
+
+        private void ClearMarkers() {
+            for (int i = 0; i < m_markers.Count; i++) {
+                Destroy(m_markers[i].gameObject);
+            }
+
+            m_markers.Clear();
+        }
+
+        private void OnInterestSelected(GameObject selected) {
+            Galaxy.ShowSolarSystem(m_lastScan[m_markers.IndexOf(selected)]);
+            ClearMarkers();
         }
     }
 
-    private void ClearMarkers() {
-        for (int i = 0; i < m_markers.Count; i++) {
-            Destroy(m_markers[i].gameObject);
-        }
-
-        m_markers.Clear();
-    }
-
-    private void OnInterestSelected(GameObject selected) {
-        Galaxy.ShowSolarSystem(m_lastScan[m_markers.IndexOf(selected)]);
-        ClearMarkers();
-    }
 }
