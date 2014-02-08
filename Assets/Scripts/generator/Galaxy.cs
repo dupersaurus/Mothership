@@ -31,14 +31,14 @@ public class Galaxy : MonoBehaviour {
         m_sectors = new List<SectorGenerator>();
         m_interestMarkers = new List<GameObject>();
 
-        for (int i = -1; i < 2; i++) {
+        /*for (int i = -1; i < 2; i++) {
             for (int j = -1; j < 2; j++) {
                 sector = (Instantiate(prefab) as GameObject).GetComponent<SectorGenerator>();
                 sector.transform.parent = m_transform;
                 sector.Setup(i, j, 1);
                 m_sectors.Add(sector);
             }
-        }
+        }*/
 	}
 
     public void ViewChange(Rect view) {

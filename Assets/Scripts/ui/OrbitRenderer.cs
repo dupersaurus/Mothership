@@ -34,4 +34,12 @@ public class OrbitRenderer : MonoBehaviour {
 
         m_renderer.SetPosition(iSteps, new Vector3(fRadius, 0, 0));
     }
+
+    public void SetLineWidth(float fStart, float fEnd) {
+        if (m_renderer == null) {
+            m_renderer = GetComponent<LineRenderer>();
+        }
+
+        m_renderer.SetWidth(fStart, fEnd);
+    }
 }

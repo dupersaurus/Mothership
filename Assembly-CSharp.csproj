@@ -137,6 +137,7 @@
      <Compile Include="Assets\Scripts\TilePlacer.cs" />
      <Compile Include="Assets\Scripts\actors\Ship.cs" />
      <Compile Include="Assets\Scripts\generator\Galaxy.cs" />
+     <Compile Include="Assets\Scripts\generator\GalaxyMap.cs" />
      <Compile Include="Assets\Scripts\generator\Planet.cs" />
      <Compile Include="Assets\Scripts\generator\SectorCamera.cs" />
      <Compile Include="Assets\Scripts\generator\SectorGenerator.cs" />

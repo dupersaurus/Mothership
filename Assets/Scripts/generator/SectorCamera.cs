@@ -158,6 +158,8 @@ public class SectorCamera : MonoBehaviour {
     }
 
     private void _MoveCameraTo(Vector3 pos, float fTime, cbOnCameraMoveFinished callback, AnimationCurve curve = null) {
+        m_bIsTweening = true;
+
         TweenPosition tween = TweenPosition.Begin(gameObject, fTime, pos);
         tween.eventReceiver = gameObject;
         tween.callWhenFinished = "TweenFinished";
@@ -172,11 +174,11 @@ public class SectorCamera : MonoBehaviour {
     }
 
     private void TweenFinished() {
+        m_bIsTweening = false;
+
         if (OnCameraMoveFinished != null) {
             OnCameraMoveFinished();
             OnCameraMoveFinished = null;
         }
-
-        m_bIsTweening = false;
     }
 }
