@@ -9,7 +9,7 @@ public class SolarSystemBody : MonoBehaviour {
     protected OrbitRenderer m_orbitRing;
     protected bool m_bShowOrbitRing = true;
 
-    protected void OnDestroy() {
+    protected virtual void OnDestroy() {
         SectorCamera.OnViewChange -= OnViewChange;
     }
 

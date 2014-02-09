@@ -36,7 +36,10 @@ public class SectorGenerator : MonoBehaviour {
     /// </summary>
     /// <param name="area">Rectangle defining the sector's bounds for perlin generation</param>
     /// <param name="iSeed">The sector's seed. Everything random in the sector starts with this.</param>
-    public void Setup(int iSectorX, int iSectorY, int iSeed) {
+    public void Setup(GalaxySectorData data, int iSeed) {
+
+		int iSectorX = data.X;
+		int iSectorY = data.Y;
         name = "Sector (" + iSectorX + ", " + iSectorY + ")";
 
         m_starPrefab = Resources.Load("Star") as GameObject;
@@ -59,12 +62,26 @@ public class SectorGenerator : MonoBehaviour {
         float xRight = Mathf.Ceil(area.xMax);
         float yTop = Mathf.Ceil(area.yMin);
         float yBottom = Mathf.Floor(area.yMax);
+        float fDensity = data.GetSectorDensity();
+        float fTempDensity;
+		float fAverage = 0;
+        float fAverageDensity = 0;
+		int iTicks = 0;
 
         for (float fSampleX = xLeft; fSampleX <= xRight; fSampleX += m_sampleIncrement) {
             for (float fSampleY = yTop; fSampleY >= yBottom; fSampleY -= m_sampleIncrement) {
-                fValue = Mathf.PerlinNoise(fSampleX, fSampleY) * Random.value;
+                
+                // Draw from perlin, then flatten range
+                //fValue = Mathf.PerlinNoise(fSampleX, fSampleY);// *Random.value; //*data.GetSectorDensity();
+                //fValue = fValue * 0.8f + 0.1f;
+                fValue = Random.value;
 
-                if (Random.value * fValue > 0.45f) {
+                fTempDensity = fDensity * Random.value * 0.25f;// *Random.value;
+				fAverage += fValue;
+                fAverageDensity += fTempDensity;
+				iTicks++;
+
+                if (fValue < fTempDensity) {
                     star = Instantiate(m_starPrefab) as GameObject;
                     star.transform.parent = transform;
                     star.transform.localPosition = new Vector3(fSampleX + MakeNoise() - fXZero, fSampleY + MakeNoise() - fYZero);
@@ -75,10 +92,14 @@ public class SectorGenerator : MonoBehaviour {
             }
         }
 
+        fAverage = fAverage / (float)iTicks;
+        fAverageDensity = fAverageDensity / (float)iTicks;
+
         // Draw background?
         Texture2D background = new Texture2D(Mathf.CeilToInt(100 * (m_sectorSize.x / m_sectorSize.y)), 100, TextureFormat.ARGB32, false);
         int iTexX, iTexY;
         Color[] colors = new Color[16];
+        Color temp = data.GetSectorColor();
 
         for (int i = 0; i < background.width; i++) {
             for (int j = 0; j < background.height; j++) {
@@ -90,7 +111,7 @@ public class SectorGenerator : MonoBehaviour {
 
                 iTexX = i;
                 iTexY = j;
-                background.SetPixel(i, j, new Color(0, 0, 0.1f * fValue, 1));
+                background.SetPixel(i, j, temp * fValue * fDensity);
                 //background.SetPixels(iTexX, iTexY, Mathf.Min(4, background.width - iTexX), Mathf.Min(4, background.height - iTexY), colors);
             }
         }

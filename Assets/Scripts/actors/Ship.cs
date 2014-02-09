@@ -1,43 +1,57 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-namespace Mothership.Actors {
+public class Ship : MonoBehaviour {
 
-    public class Ship : MonoBehaviour {
-        private Transform m_transform;
+    /// <summary>TODO for player only</summary>
+    private static Ship m_instance;
 
-        /// <summary>Icon to display when camera is at a distance</summary>
-        public GameObject m_distanceIcon;
+    private Transform m_transform;
 
-        public GameObject m_beacon;
-        private bool m_bFlashBeacon = true;
+    /// <summary>Icon to display when camera is at a distance</summary>
+    public GameObject m_distanceIcon;
 
-        // Use this for initialization
-        void Start() {
-            m_transform = transform;
-            SectorCamera.OnViewChange += OnViewChange;
+    public GameObject m_beacon;
+    private bool m_bFlashBeacon = true;
 
-            OnViewChange(SectorCamera.Instance.transform.position, new Rect());
-        }
+    void Awake() {
+        m_instance = this;
+    }
 
-        void OnDestroy() {
-            SectorCamera.OnViewChange -= OnViewChange;
-        }
+    // Use this for initialization
+    void Start() {
+        m_transform = transform;
+        SectorCamera.OnViewChange += OnViewChange;
 
-        private void OnViewChange(Vector3 pos, Rect rect) {
+        OnViewChange(SectorCamera.Instance.transform.position, new Rect());
+        gameObject.SetActive(false);
+    }
+
+    void OnDestroy() {
+        SectorCamera.OnViewChange -= OnViewChange;
+    }
+
+    private void OnViewChange(Vector3 pos, Rect rect) {
             
-            if (m_transform.position.z - pos.z >= 5) {
-                if (!m_bFlashBeacon) {
-                    NGUITools.SetActive(m_beacon, true);
-                    m_bFlashBeacon = true;
-                }
-            } else {
-                if (m_bFlashBeacon) {
-                    NGUITools.SetActive(m_beacon, false);
-                    m_bFlashBeacon = false;
-                }
+        if (m_transform.position.z - pos.z >= 5) {
+            if (!m_bFlashBeacon) {
+                NGUITools.SetActive(m_beacon, true);
+                m_bFlashBeacon = true;
             }
-
+        } else {
+            if (m_bFlashBeacon) {
+                NGUITools.SetActive(m_beacon, false);
+                m_bFlashBeacon = false;
+            }
         }
+
+    }
+
+    public static void SetEnabled(bool bEnable) {
+        m_instance.gameObject.SetActive(bEnable);
+    }
+
+    public static void MoveTo(Vector3 pos) {
+        m_instance.m_transform.position = pos;
     }
 }

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Mothership.UI;
 
 public class Galaxy : MonoBehaviour {
     private static Galaxy m_instance;
@@ -13,6 +14,7 @@ public class Galaxy : MonoBehaviour {
     private Rect m_lastView;
 
     private Star m_showSystemOf;
+    private SolarSystem m_currentSystem;
 
     void Awake() {
         m_instance = this;
@@ -24,22 +26,70 @@ public class Galaxy : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        SectorGenerator sector;
-        Object prefab = Resources.Load("Sector");
 
         m_transform = transform;
         m_sectors = new List<SectorGenerator>();
         m_interestMarkers = new List<GameObject>();
+	}
 
-        /*for (int i = -1; i < 2; i++) {
+    /// <summary>
+    /// Setup the sectors around a given sector coordinate
+    /// </summary>
+    /// <param name="iX"></param>
+    /// <param name="iY"></param>
+    /// <returns>Position to zoom the camera to for the given sectors</returns>
+    public static Vector3 SetupSectors(int iX, int iY) {
+        return m_instance._SetupSectors(iX, iY);
+    }
+
+    /// <summary>
+    /// Setup the sectors around a given sector coordinate
+    /// </summary>
+    /// <param name="iX"></param>
+    /// <param name="iY"></param>
+    /// <returns>Position to zoom the camera to for the given sectors</returns>
+    private Vector3 _SetupSectors(int iX, int iY) {
+        for (int i = 0; i < m_sectors.Count; i++) {
+            Destroy(m_sectors[i].gameObject);
+        }
+
+        m_sectors.Clear();
+        
+        SectorGenerator sector;
+        Object prefab = Resources.Load("Sector");
+        Vector3 pos = Vector3.zero;
+        GalaxySectorData data;
+
+        //for (int i = 0; i < 1; i++) {
+        //    for (int j = 0; j < 1; j++) {
+        for (int i = -1; i < 2; i++) {
             for (int j = -1; j < 2; j++) {
+                data = GalaxyMap.GetSectorData(iX + i, iY + j);
+
+                if (data == null) {
+                    continue;
+                }
+
                 sector = (Instantiate(prefab) as GameObject).GetComponent<SectorGenerator>();
                 sector.transform.parent = m_transform;
-                sector.Setup(i, j, 1);
+                sector.Setup(data, 1);
                 m_sectors.Add(sector);
+
+                if (i == 0 && j == 0) {
+                    pos = sector.transform.position;
+                    pos.z = -10;
+                }
             }
-        }*/
-	}
+        }
+
+        UI.SetMode(UI.Mode.Sector);
+
+        // TODO real ship handling
+        Ship.SetEnabled(true);
+        Ship.MoveTo(new Vector3(pos.x, pos.y, -0.05f));
+
+        return pos;
+    }
 
     public void ViewChange(Rect view) {
         m_lastView = view;
@@ -58,19 +108,9 @@ public class Galaxy : MonoBehaviour {
 
             if (RectIntersectTest(view, m_sectors[i].Bounds)) {
                 Debug.Log("^^^ INTERSECT");
-                interests.AddRange(m_sectors[i].SearchInterests(Vector3.zero, 144, 1));
+                interests.AddRange(m_sectors[i].SearchInterests(view.center, 144, 1));
             }
         }
-
-        // Create the markers
-        /*GameObject marker;
-        Object prefab = Resources.Load("Interest Marker");
-
-        for (int i = 0; i < interests.Count; i++) {
-            marker = Instantiate(prefab) as GameObject;
-            marker.transform.parent = m_transform;
-            marker.transform.localPosition = interests[i].LocalPosition;
-        }*/
 
         Debug.Log("Interest Count >> " + interests.Count);
         return interests;
@@ -87,10 +127,16 @@ public class Galaxy : MonoBehaviour {
     private void _ShowSolarSystem(Star star) {
         m_showSystemOf = star;
 
+        Vector3 pos = m_showSystemOf.Position;
+        m_currentSystem = (Instantiate(Resources.Load("Solar System")) as GameObject).GetComponent<SolarSystem>();
+        m_currentSystem.transform.position = new Vector3(pos.x, pos.y, 200);
+        m_currentSystem.Setup(m_showSystemOf);
+
         Vector3 target = star.Position;
         target.z = -1;
 
         SectorCamera.MoveCameraTo(target, 2, BringInSolarSystem, SectorCamera.Instance.m_exitSectorToSystem);
+        UI.SetMode(UI.Mode.Transition);
 
         /*TweenPosition tween = TweenPosition.Begin(gameObject, 2, target);
         tween.eventReceiver = gameObject;
@@ -99,13 +145,36 @@ public class Galaxy : MonoBehaviour {
 
     private void BringInSolarSystem() {
         Vector3 pos = m_showSystemOf.Position;
-        SolarSystem solarSystem = (Instantiate(Resources.Load("Solar System")) as GameObject).GetComponent<SolarSystem>();
-        solarSystem.transform.position = new Vector3(pos.x, pos.y, 200);
-        solarSystem.Setup(m_showSystemOf);
-
         pos.z = 140;
-        SectorCamera.MoveCameraTo(pos, 3, null, SectorCamera.Instance.m_enterSystemFromSector);
+        SectorCamera.MoveCameraTo(pos, 3, OnArrivedSolarSystem, SectorCamera.Instance.m_enterSystemFromSector);
 
-        NGUITools.SetActive(gameObject, false);
+        gameObject.SetActive(false);
+    }
+
+    private void OnArrivedSolarSystem() {
+        UI.SetMode(UI.Mode.SolarSystem);
+    }
+
+    public static void ExitSystem() {
+        m_instance._ExitSystem();
+    }
+
+    private void _ExitSystem() {
+        UI.SetMode(UI.Mode.Transition);
+
+        Vector3 pos = m_showSystemOf.Position;
+        pos.z = -1;
+        SectorCamera.MoveCameraTo(pos, 3, OnExitSolarSystem, SectorCamera.Instance.m_exitSystemToSector);
+    }
+
+    private void OnExitSolarSystem() {
+        gameObject.SetActive(true);
+
+        SectorCamera.ZoomCamera(-10, 2, OnArrivedExitSolarSystem, SectorCamera.Instance.m_enterSectorFromSystem);
+    }
+
+    private void OnArrivedExitSolarSystem() {
+        Destroy(m_currentSystem.gameObject);
+        UI.SetMode(UI.Mode.Sector);
     }
 }

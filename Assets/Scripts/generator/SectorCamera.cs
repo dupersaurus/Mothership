@@ -33,6 +33,9 @@ public class SectorCamera : MonoBehaviour {
     /// <summary>If the camera is automatically moving to someplace</summary>
     private bool m_bIsTweening = false;
 
+    private bool m_bDirty = false;
+    private bool m_bSaveCallback = false;
+
     void Awake() {
         m_instance = this;
         m_camera = camera;
@@ -50,9 +53,13 @@ public class SectorCamera : MonoBehaviour {
     }
 
     void Update() {
-        bool bUpdateView = false;
+        bool bUpdateView = m_bDirty;
         Rect newView;
         Vector3 camPos = m_transform.position;
+
+        if (m_bDirty) {
+            m_bDirty = !m_bDirty;
+        }
 
         if (m_bIsTweening) {
             bUpdateView = true;
@@ -158,27 +165,54 @@ public class SectorCamera : MonoBehaviour {
     }
 
     private void _MoveCameraTo(Vector3 pos, float fTime, cbOnCameraMoveFinished callback, AnimationCurve curve = null) {
-        m_bIsTweening = true;
-
-        TweenPosition tween = TweenPosition.Begin(gameObject, fTime, pos);
-        tween.eventReceiver = gameObject;
-        tween.callWhenFinished = "TweenFinished";
-
-        if (curve != null) {
-            tween.animationCurve = curve;
+        if (fTime <= 0) {
+            m_transform.position = pos;
+            m_bDirty = true;
         } else {
-            tween.method = UITweener.Method.EaseInOut;
-        }
 
-        OnCameraMoveFinished = callback;
+            m_bIsTweening = true;
+
+            TweenPosition tween = TweenPosition.Begin(gameObject, fTime, pos);
+            tween.eventReceiver = gameObject;
+            tween.callWhenFinished = "TweenFinished";
+
+            if (curve != null) {
+                tween.animationCurve = curve;
+            } else {
+                tween.method = UITweener.Method.EaseInOut;
+            }
+
+            if (callback != null) {
+                OnCameraMoveFinished = callback;
+                m_bSaveCallback = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Zooms the camera to a specific z while maintaining x and y
+    /// </summary>
+    /// <param name="fZ"></param>
+    /// <param name="fTime"></param>
+    /// <param name="callback"></param>
+    /// <param name="curve"></param>
+    public static void ZoomCamera(float fZ, float fTime, cbOnCameraMoveFinished callback, AnimationCurve curve = null) {
+        Vector3 pos = m_instance.m_transform.position;
+        pos.z = fZ;
+
+        m_instance._MoveCameraTo(pos, fTime, callback, curve);
     }
 
     private void TweenFinished() {
         m_bIsTweening = false;
 
         if (OnCameraMoveFinished != null) {
+            m_bSaveCallback = false;
             OnCameraMoveFinished();
-            OnCameraMoveFinished = null;
+
+            if (!m_bSaveCallback) {
+                OnCameraMoveFinished = null;
+            }
         }
     }
 }
