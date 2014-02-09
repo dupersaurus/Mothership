@@ -161,7 +161,7 @@ public class Star : MonoBehaviour {
     /// </summary>
     /// <returns></returns>
     public SystemBody[] GetBodies() {
-        SystemBody[] bodies = new SystemBody[4/*Random.Range(1, 7)*/];
+        SystemBody[] bodies = new SystemBody[Random.Range(0, 7)];
         float fLastRadius = m_fRadius;
 
         Random.seed = Seed;
@@ -170,7 +170,7 @@ public class Star : MonoBehaviour {
         for (int i = 0; i < bodies.Length; i++) {
 
             // Basic distance from previous orbit, then extra random for this orbit
-            fLastRadius += (Random.value * 1 + 1) + Random.value * 1;
+            fLastRadius += (Random.value * 2 + 1) + Random.value * 1;
 
             bodies[i] = new PlanetInfo(Seed + i);
             bodies[i].MajorAxis = fLastRadius * SolarSystem.UNIT_TO_AU;

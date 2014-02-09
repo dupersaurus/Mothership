@@ -208,6 +208,15 @@ public class GalaxyMap : MonoBehaviour {
         }
     }
 
+    public static void ReturnToMap() {
+        m_instance._ReturnToMap();
+    }
+
+    private void _ReturnToMap() {
+        UI.SetMode(UI.Mode.Galaxy);
+        gameObject.SetActive(true);
+    }
+
     public static GalaxySectorData GetSectorData(int iX, int iY) {
         return m_instance._GetSectorData(iX, iY);
     }

@@ -49,11 +49,7 @@ public class Galaxy : MonoBehaviour {
     /// <param name="iY"></param>
     /// <returns>Position to zoom the camera to for the given sectors</returns>
     private Vector3 _SetupSectors(int iX, int iY) {
-        for (int i = 0; i < m_sectors.Count; i++) {
-            Destroy(m_sectors[i].gameObject);
-        }
-
-        m_sectors.Clear();
+        ClearSectors();
         
         SectorGenerator sector;
         Object prefab = Resources.Load("Sector");
@@ -91,6 +87,14 @@ public class Galaxy : MonoBehaviour {
         return pos;
     }
 
+    private void ClearSectors() {
+        for (int i = 0; i < m_sectors.Count; i++) {
+            Destroy(m_sectors[i].gameObject);
+        }
+
+        m_sectors.Clear();
+    }
+
     public void ViewChange(Rect view) {
         m_lastView = view;
     }
@@ -120,6 +124,10 @@ public class Galaxy : MonoBehaviour {
         return (Mathf.Abs(a.center.x - b.center.x) * 2 < (a.width + b.width)) && (Mathf.Abs(a.center.y - b.center.y) * 2 < (-a.height + -b.height));
     }
 
+    // ************************************************************************************************************
+    //  Move to solar system
+    // ************************************************************************************************************
+
     public static void ShowSolarSystem(Star star) {
         m_instance._ShowSolarSystem(star);
     }
@@ -137,10 +145,6 @@ public class Galaxy : MonoBehaviour {
 
         SectorCamera.MoveCameraTo(target, 2, BringInSolarSystem, SectorCamera.Instance.m_exitSectorToSystem);
         UI.SetMode(UI.Mode.Transition);
-
-        /*TweenPosition tween = TweenPosition.Begin(gameObject, 2, target);
-        tween.eventReceiver = gameObject;
-        tween.callWhenFinished = "BringInSolarSystem";*/
     }
 
     private void BringInSolarSystem() {
@@ -154,6 +158,10 @@ public class Galaxy : MonoBehaviour {
     private void OnArrivedSolarSystem() {
         UI.SetMode(UI.Mode.SolarSystem);
     }
+
+    // ************************************************************************************************************
+    //  Return to sector
+    // ************************************************************************************************************
 
     public static void ExitSystem() {
         m_instance._ExitSystem();
@@ -176,5 +184,23 @@ public class Galaxy : MonoBehaviour {
     private void OnArrivedExitSolarSystem() {
         Destroy(m_currentSystem.gameObject);
         UI.SetMode(UI.Mode.Sector);
+    }
+
+    // ************************************************************************************************************
+    //  Return to galaxy map
+    // ************************************************************************************************************
+
+    public static void ExitSector() {
+        m_instance._ExitSector();
+    }
+
+    private void _ExitSector() {
+        GalaxyMap.ReturnToMap();
+        StartCoroutine(DelayClearSectors());
+    }
+
+    private IEnumerator DelayClearSectors() {
+        yield return new WaitForFixedUpdate();
+        ClearSectors();
     }
 }

@@ -50,6 +50,8 @@ namespace Mothership.UI {
         private void ZoomOut() {
             if (m_currentMode == Mode.SolarSystem) {
                 Galaxy.ExitSystem();
+            } else if (m_currentMode == Mode.Sector) {
+                Galaxy.ExitSector();
             }
         }
 
