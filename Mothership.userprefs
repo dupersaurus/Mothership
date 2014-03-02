@@ -1,10 +1,12 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/generator/Star.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/actors/Ship.cs">
     <Files>
-      <File FileName="Assets/Scripts/generator/SectorGenerator.cs" Line="55" Column="68" />
-      <File FileName="Assets/Scripts/generator/SectorCamera.cs" Line="91" Column="14" />
-      <File FileName="Assets/Scripts/generator/Star.cs" Line="9" Column="36" />
+      <File FileName="Assets/Scripts/generator/SectorGenerator.cs" Line="153" Column="5" />
+      <File FileName="Assets/Scripts/actors/Ship.cs" Line="26" Column="61" />
+      <File FileName="Assets/Scripts/TimeManager.cs" Line="28" Column="2" />
+      <File FileName="Assets/Scripts/generator/Galaxy.cs" Line="131" Column="5" />
+      <File FileName="Assets/Scripts/ui/UI.cs" Line="99" Column="27" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

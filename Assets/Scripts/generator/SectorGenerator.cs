@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class SectorGenerator : MonoBehaviour {
 
+	public static float LY_PER_UNIT = -1;
+
     private Transform m_transform;
 
     private GameObject m_starPrefab;
@@ -28,6 +30,10 @@ public class SectorGenerator : MonoBehaviour {
     }
 
     void Start() {
+		if (LY_PER_UNIT == -1) {
+			LY_PER_UNIT = 2000f / m_sectorSize.x;
+		}
+
         //Setup(m_testX, m_testY, m_testSeed);
     }
 

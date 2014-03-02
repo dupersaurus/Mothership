@@ -14,6 +14,30 @@ public class Ship : MonoBehaviour {
     public GameObject m_beacon;
     private bool m_bFlashBeacon = true;
 
+	/// <summary>
+	/// Distance, in light years, FTL travel with current fuel load
+	/// </summary>
+	/// <value>The FTL range.</value>
+	public float FTLRange {
+		get { return 0; }
+	}
+
+	/// <summary>
+	/// Time that the ship can stay in continuous FTL, in game seconds
+	/// </summary>
+	/// <value>The FTL time.</value>
+	public float FTLTime {
+		get { return 0; }
+	}
+
+	/// <summary>
+	/// FTL speed, ly/sec (game)
+	/// </summary>
+	/// <value>The FTP speed.</value>
+	public float FTPSpeed {
+		get { return 0; }
+	}
+
     void Awake() {
         m_instance = this;
     }
@@ -22,6 +46,7 @@ public class Ship : MonoBehaviour {
     void Start() {
         m_transform = transform;
         SectorCamera.OnViewChange += OnViewChange;
+		TimeManager.OnWorldUpdate += OnWorldUpdate;
 
         OnViewChange(SectorCamera.Instance.transform.position, new Rect());
         gameObject.SetActive(false);
@@ -29,7 +54,12 @@ public class Ship : MonoBehaviour {
 
     void OnDestroy() {
         SectorCamera.OnViewChange -= OnViewChange;
+		TimeManager.OnWorldUpdate -= OnWorldUpdate;
     }
+
+	private void OnWorldUpdate(float fDelta) {
+
+	}
 
     private void OnViewChange(Vector3 pos, Rect rect) {
             
