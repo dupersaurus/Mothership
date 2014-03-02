@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class SectorGenerator : MonoBehaviour {
 
-	public static float LY_PER_UNIT = -1;
+	public static float UNIT_PER_LY = 0.008f;
 
     private Transform m_transform;
 
@@ -29,10 +29,16 @@ public class SectorGenerator : MonoBehaviour {
         get { return m_bounds; }
     }
 
+    private Vector2 m_stellarGrid;
+
+    public Vector2 StellarGridCoords {
+        get { return m_stellarGrid; }
+    }
+
     void Start() {
-		if (LY_PER_UNIT == -1) {
+		/*if (LY_PER_UNIT == -1) {
 			LY_PER_UNIT = 2000f / m_sectorSize.x;
-		}
+		}*/
 
         //Setup(m_testX, m_testY, m_testSeed);
     }
@@ -46,6 +52,7 @@ public class SectorGenerator : MonoBehaviour {
 
 		int iSectorX = data.X;
 		int iSectorY = data.Y;
+        m_stellarGrid = new Vector2(iSectorX, iSectorY);
         name = "Sector (" + iSectorX + ", " + iSectorY + ")";
 
         m_starPrefab = Resources.Load("Star") as GameObject;
@@ -135,7 +142,7 @@ public class SectorGenerator : MonoBehaviour {
 
         // Setup stars
         for (int i = 0; i < m_stars.Count; i++) {
-            m_stars[i].Setup(Random.Range(0, int.MaxValue));
+            m_stars[i].Setup(this, Random.Range(0, int.MaxValue));
         }
     }
 

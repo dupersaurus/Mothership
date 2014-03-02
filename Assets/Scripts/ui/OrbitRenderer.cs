@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+[RequireComponent(typeof(LineRenderer))]
 public class OrbitRenderer : MonoBehaviour {
     private LineRenderer m_renderer;
     private Transform m_transform;

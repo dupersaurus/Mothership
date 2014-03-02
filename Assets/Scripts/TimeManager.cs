@@ -10,24 +10,51 @@ public class TimeManager : MonoBehaviour
 	/// </summary>
 	public static event cbWorldUpdate OnWorldUpdate;
 
+    private static TimeManager m_instance;
+
 	/// <summary>
 	/// Total time elapsed, in seconds
 	/// </summary>
-	private float m_totalTime = 0;
+	private double m_totalTime = 0;
+
+    /// <summary>
+    /// Total time elapsed in the game, in seconds
+    /// </summary>
+    public static double ElapsedTime {
+        get { return m_instance.m_totalTime; }
+    }
 
 	/// <summary>
 	/// Multiplier to real time
 	/// </summary>
-	private float m_fTimeScale = 1;
+	public float m_fTimeScale = 0;
+
+    /// <summary>
+    /// Multiplier to real time
+    /// </summary>
+    public static float TimeScale {
+        get { return m_instance.m_fTimeScale; }
+        set { m_instance.m_fTimeScale = value; }
+    }
 
 	// Use this for initialization
-	void Start ()
-	{
-
+	void Awake () {
+        m_instance = this;
 	}
 
 	void FixedUpdate () {
 		float fDelta = Time.fixedDeltaTime * m_fTimeScale;
+
+        if (fDelta == 0) {
+            return;
+        }
+        
+        m_totalTime += fDelta;
+        OnWorldUpdate(fDelta);
 	}
+
+    public static void Pause() {
+        TimeScale = 0;
+    }
 }
 

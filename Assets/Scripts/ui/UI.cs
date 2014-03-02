@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -17,9 +18,12 @@ namespace Mothership.UI {
 
         public Camera m_worldCamera;
         public GameObject m_markerParent;
+        public GameObject m_popupParent;
 
         public GameObject m_scanButton;
         public GameObject m_zoomOutButton;
+
+        public UILabel m_timeElapsedLabel;
 
         private UICamera m_camera;
         private GameObject m_interestMarkerPrefab;
@@ -45,6 +49,23 @@ namespace Mothership.UI {
 
         void OnDestroy() {
             SectorCamera.OnViewChange -= UpdateView;
+        }
+
+        /// <summary>
+        /// Keep up with the elapsed time
+        /// </summary>
+        void FixedUpdate() {
+            TimeSpan span = TimeSpan.FromSeconds(TimeManager.ElapsedTime);
+            string sText = string.Format("{0}y {1}d {2}h {3}m {4}s\nTime Scale {5}x", Mathf.FloorToInt((float)span.Days / 365f), (span.Days % 365).ToString("D3"), span.Hours.ToString("D2"), span.Minutes.ToString("D2"), span.Seconds.ToString("D2"), TimeManager.TimeScale);
+
+            double fJumpTime = Ship.JumpTimeRemaining;
+
+            if (fJumpTime != 0) {
+                span = TimeSpan.FromSeconds(fJumpTime);
+                sText = string.Format("{0}\nJump {1}y {2}d {3}h {4}m {5}s", sText, Mathf.FloorToInt((float)span.Days / 365f), (span.Days % 365).ToString("D3"), span.Hours.ToString("D2"), span.Minutes.ToString("D2"), span.Seconds.ToString("D2"));
+            }
+
+            m_timeElapsedLabel.text = sText;
         }
 
         private void ZoomOut() {
@@ -73,9 +94,9 @@ namespace Mothership.UI {
 
         public void UpdateView(Vector3 pos, Rect view) {
             Vector3 viewport;
-
-            for (int i = 0; i < m_markers.Count; i++) {
-                viewport = m_worldCamera.camera.WorldToViewportPoint(m_lastScan[i].transform.position);
+            
+            if (Ship.JumpDestination != null && (m_lastScan == null || m_lastScan.Count == 0)) {
+                viewport = m_worldCamera.camera.WorldToViewportPoint(Ship.JumpDestination.transform.position);
                 //Debug.Log("Viewport >> " + viewport);
 
                 viewport.x *= m_camera.camera.pixelWidth;
@@ -83,21 +104,56 @@ namespace Mothership.UI {
                 viewport.z = 0;
                 //Debug.Log("  Screen >> " + viewport + " (" + m_camera.camera.pixelWidth + ", " + m_camera.camera.pixelHeight + ")");
 
-                m_markers[i].transform.localPosition = viewport;
+                m_markers[0].transform.localPosition = viewport;
+            } else {
+                for (int i = 0; i < m_markers.Count; i++) {
+                    viewport = m_worldCamera.camera.WorldToViewportPoint(m_lastScan[i].transform.position);
+                    //Debug.Log("Viewport >> " + viewport);
+
+                    viewport.x *= m_camera.camera.pixelWidth;
+                    viewport.y *= m_camera.camera.pixelHeight;
+                    viewport.z = 0;
+                    //Debug.Log("  Screen >> " + viewport + " (" + m_camera.camera.pixelWidth + ", " + m_camera.camera.pixelHeight + ")");
+
+                    m_markers[i].transform.localPosition = viewport;
+                }
             }
         }
 
         private void ClearMarkers() {
-            for (int i = 0; i < m_markers.Count; i++) {
-                Destroy(m_markers[i].gameObject);
+            if (m_markers != null) {
+                for (int i = 0; i < m_markers.Count; i++) {
+                    Destroy(m_markers[i].gameObject);
+                }
+
+                m_markers.Clear();
             }
 
-            m_markers.Clear();
+            if (m_lastScan != null) {
+                m_lastScan.Clear();
+            }
         }
 
         private void OnInterestSelected(GameObject selected) {
-            Galaxy.ShowSolarSystem(m_lastScan[m_markers.IndexOf(selected)]);
+            //Galaxy.JumpToSolarSystem(m_lastScan[m_markers.IndexOf(selected)]);
+            //ClearMarkers();
+
+            GameObject popup = NGUITools.AddChild(m_popupParent, Resources.Load("UI/Stellar Info") as GameObject);
+            popup.GetComponent<StellarInfoPopup>().Setup(m_lastScan[m_markers.IndexOf(selected)]);
+        }
+
+        public static void SetJumpDestination() {
+            m_instance._SetJumpDestination();
+        }
+
+        private void _SetJumpDestination() {
             ClearMarkers();
+
+            GameObject marker = NGUITools.AddChild(m_markerParent, m_interestMarkerPrefab);
+            marker.GetComponentInChildren<UIWidget>().color = Color.cyan;
+            m_markers.Add(marker);
+
+            UpdateView(Vector3.zero, new Rect());
         }
 
         public static void SetMode(Mode mode) {
@@ -106,6 +162,7 @@ namespace Mothership.UI {
 
         private void _SetMode(Mode mode) {
             m_currentMode = mode;
+            ClearMarkers();
 
             switch (mode) {
                 case Mode.Galaxy:

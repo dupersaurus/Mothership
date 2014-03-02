@@ -5,7 +5,7 @@ using Mothership.UI;
 
 public class Galaxy : MonoBehaviour {
     private static Galaxy m_instance;
-    
+
     private Transform m_transform;
 
     private List<SectorGenerator> m_sectors;
@@ -127,6 +127,10 @@ public class Galaxy : MonoBehaviour {
     // ************************************************************************************************************
     //  Move to solar system
     // ************************************************************************************************************
+
+    public static void JumpToSolarSystem(Star star) {
+        Ship.EnterFTL(star);
+    }
 
     public static void ShowSolarSystem(Star star) {
         m_instance._ShowSolarSystem(star);

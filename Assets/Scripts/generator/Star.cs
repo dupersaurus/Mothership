@@ -28,16 +28,28 @@ public class StarData {
         get { return m_iSeed; }
     }
 
+    private string m_sId;
+
+    /// <summary>The object's astrometric identification</summary>
+    public string Identification {
+        get { return m_sId; }
+    }
+
     public SpectralClass Class {
         get { return m_spectralClass; }
+    }
+
+    public string Type {
+        get { return m_spectralClass.ToString() + " Main Sequence"; }
     }
 
     public bool IsInteresting {
         get { return m_bInteresting; }
     }
 
-    public StarData(int iSeed) {
+    public StarData(SectorGenerator sector, int iSeed) {
         m_iSeed = iSeed;
+        m_sId = string.Format("S {0} {1} x{2}", sector.StellarGridCoords.x.ToString("+#;-#"), sector.StellarGridCoords.y.ToString("+#;-#"), iSeed.ToString("X6"));
 
         Random.seed = iSeed;
         float fRandom = Random.Range(0f, 100f);
@@ -92,8 +104,8 @@ public class Star : MonoBehaviour {
     /// NOT SEED SAFE Randomly sets the star up
     /// </summary>
     /// <param name="iSeed">The seed to use for the star and its solar system</param>
-    public void Setup(int iSeed) {
-        m_info = new StarData(iSeed);
+    public void Setup(SectorGenerator parent, int iSeed) {
+        m_info = new StarData(parent, iSeed);
 
         Setup(m_info);
     }
