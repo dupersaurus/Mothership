@@ -136,7 +136,9 @@
      <Compile Include="Assets\Scripts\RoomInfo.cs" />
      <Compile Include="Assets\Scripts\TilePlacer.cs" />
      <Compile Include="Assets\Scripts\TimeManager.cs" />
-     <Compile Include="Assets\Scripts\actors\Ship.cs" />
+     <Compile Include="Assets\Scripts\actors\GalacticShip.cs" />
+     <Compile Include="Assets\Scripts\actors\ShipInfo.cs" />
+     <Compile Include="Assets\Scripts\actors\SystemShip.cs" />
      <Compile Include="Assets\Scripts\generator\Galaxy.cs" />
      <Compile Include="Assets\Scripts\generator\GalaxyMap.cs" />
      <Compile Include="Assets\Scripts\generator\Planet.cs" />

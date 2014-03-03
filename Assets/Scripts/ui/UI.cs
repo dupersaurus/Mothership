@@ -2,10 +2,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+//using Mothership.UI;
 
 namespace Mothership.UI {
 
-    public class UI : MonoBehaviour {
+    public class UI : MonoBehaviour { 
 
         public enum Mode {
             Galaxy,
@@ -30,6 +31,8 @@ namespace Mothership.UI {
 
         private List<Star> m_lastScan;
         private List<GameObject> m_markers;
+
+        private StellarInfoPopup m_infoPopup;
 
         private Mode m_currentMode;
 
@@ -58,7 +61,7 @@ namespace Mothership.UI {
             TimeSpan span = TimeSpan.FromSeconds(TimeManager.ElapsedTime);
             string sText = string.Format("{0}y {1}d {2}h {3}m {4}s\nTime Scale {5}x", Mathf.FloorToInt((float)span.Days / 365f), (span.Days % 365).ToString("D3"), span.Hours.ToString("D2"), span.Minutes.ToString("D2"), span.Seconds.ToString("D2"), TimeManager.TimeScale);
 
-            double fJumpTime = Ship.JumpTimeRemaining;
+            double fJumpTime = GalacticShip.JumpTimeRemaining;
 
             if (fJumpTime != 0) {
                 span = TimeSpan.FromSeconds(fJumpTime);
@@ -66,6 +69,41 @@ namespace Mothership.UI {
             }
 
             m_timeElapsedLabel.text = sText;
+        }
+
+        /// <summary>
+        /// Converts a time to a string representation
+        /// </summary>
+        /// <param name="fTime">The time, in seconds, to convert</param>
+        /// <param name="bShowAll">Whether to show all time fields (true), or just significant (false)</param>
+        /// <returns></returns>
+        public static string ConvertToTimeString(double fTime, bool bShowAll) {
+            TimeSpan span = TimeSpan.FromSeconds(fTime);
+            
+            if (bShowAll || span.Days >= 365) {
+                return string.Format("{0}y {1}d {2}h {3}m {4}s", Mathf.FloorToInt((float)span.Days / 365f), (span.Days % 365).ToString("D3"), span.Hours.ToString("D2"), span.Minutes.ToString("D2"), span.Seconds.ToString("D2"));
+            } else {
+
+                // Show up-to days
+                if (span.TotalHours >= 24) {
+                    return string.Format("{1}d {2}h {3}m {4}s", 0, (span.Days % 365).ToString("D3"), span.Hours.ToString("D2"), span.Minutes.ToString("D2"), span.Seconds.ToString("D2"));
+                }
+
+                // Show up-to hours
+                else if (span.TotalMinutes >= 60) {
+                    return string.Format("{2}h {3}m {4}s", 0, 0, span.Hours.ToString("D2"), span.Minutes.ToString("D2"), span.Seconds.ToString("D2"));
+                }
+
+                // Show up-to minutes
+                else if (span.TotalSeconds >= 60) {
+                    return string.Format("{3}m {4}s", 0, 0, 0, span.Minutes.ToString("D2"), span.Seconds.ToString("D2"));
+                }
+
+                // Show up-to seconds
+                else {
+                    return string.Format("{4}s", 0, 0, 0, 0, span.Seconds.ToString("D2"));
+                }
+            }
         }
 
         private void ZoomOut() {
@@ -93,31 +131,34 @@ namespace Mothership.UI {
         }
 
         public void UpdateView(Vector3 pos, Rect view) {
-            Vector3 viewport;
-            
-            if (Ship.JumpDestination != null && (m_lastScan == null || m_lastScan.Count == 0)) {
-                viewport = m_worldCamera.camera.WorldToViewportPoint(Ship.JumpDestination.transform.position);
-                //Debug.Log("Viewport >> " + viewport);
-
-                viewport.x *= m_camera.camera.pixelWidth;
-                viewport.y *= m_camera.camera.pixelHeight;
-                viewport.z = 0;
-                //Debug.Log("  Screen >> " + viewport + " (" + m_camera.camera.pixelWidth + ", " + m_camera.camera.pixelHeight + ")");
-
-                m_markers[0].transform.localPosition = viewport;
+            if (GalacticShip.JumpDestination != null && (m_lastScan == null || m_lastScan.Count == 0)) {
+                if (m_markers.Count > 0) {
+                    m_markers[0].transform.localPosition = WorldToViewport(GalacticShip.JumpDestination.transform.position, 0);
+                }
             } else {
                 for (int i = 0; i < m_markers.Count; i++) {
-                    viewport = m_worldCamera.camera.WorldToViewportPoint(m_lastScan[i].transform.position);
-                    //Debug.Log("Viewport >> " + viewport);
-
-                    viewport.x *= m_camera.camera.pixelWidth;
-                    viewport.y *= m_camera.camera.pixelHeight;
-                    viewport.z = 0;
-                    //Debug.Log("  Screen >> " + viewport + " (" + m_camera.camera.pixelWidth + ", " + m_camera.camera.pixelHeight + ")");
-
-                    m_markers[i].transform.localPosition = viewport;
+                    m_markers[i].transform.localPosition = WorldToViewport(m_lastScan[i].transform.position, 0);
                 }
             }
+
+            if (m_infoPopup != null) {
+                m_infoPopup.transform.localPosition = WorldToViewport(m_infoPopup.Target.transform.position, -1);
+            }
+        }
+
+        /// <summary>
+        /// Converts a world position to screen space
+        /// </summary>
+        /// <param name="worldPos">World position to convert</param>
+        /// <param name="fZ">OPTIONAL Z value to use</param>
+        /// <returns></returns>
+        private Vector3 WorldToViewport(Vector3 worldPos, float fZ) {
+            Vector3 viewport = m_worldCamera.camera.WorldToViewportPoint(worldPos);
+            viewport.x *= m_camera.camera.pixelWidth;
+            viewport.y *= m_camera.camera.pixelHeight;
+            viewport.z = fZ;
+
+            return viewport;
         }
 
         private void ClearMarkers() {
@@ -134,12 +175,26 @@ namespace Mothership.UI {
             }
         }
 
+        /// <summary>
+        /// Called when an interest marker is selected
+        /// </summary>
+        /// <param name="selected"></param>
         private void OnInterestSelected(GameObject selected) {
-            //Galaxy.JumpToSolarSystem(m_lastScan[m_markers.IndexOf(selected)]);
-            //ClearMarkers();
+            if (m_infoPopup == null) {
+                m_infoPopup = NGUITools.AddChild(m_popupParent, Resources.Load("UI/Stellar Info") as GameObject).GetComponent<StellarInfoPopup>();
+            }
 
-            GameObject popup = NGUITools.AddChild(m_popupParent, Resources.Load("UI/Stellar Info") as GameObject);
-            popup.GetComponent<StellarInfoPopup>().Setup(m_lastScan[m_markers.IndexOf(selected)]);
+            m_infoPopup.Setup(selected.transform.position, this, m_lastScan[m_markers.IndexOf(selected)]);
+        }
+
+        /// <summary>
+        /// Initiate a jump to a target
+        /// </summary>
+        /// <param name="target"></param>
+        public void InitiateJump(Star target) {
+            m_infoPopup.OnSelectClose();
+            ClearMarkers();
+            Galaxy.JumpToSolarSystem(target);
         }
 
         public static void SetJumpDestination() {

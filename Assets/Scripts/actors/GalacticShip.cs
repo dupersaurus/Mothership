@@ -1,10 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Ship : MonoBehaviour {
+public class GalacticShip : MonoBehaviour {
 
     /// <summary>TODO for player only</summary>
-    private static Ship m_instance;
+    private static GalacticShip m_instance;
+
+    public static GalacticShip Instance {
+        get { return m_instance; }
+    }
 
     private Transform m_transform;
 
@@ -16,32 +20,38 @@ public class Ship : MonoBehaviour {
 
     public OrbitRenderer m_fuelRangeIndicator;
 
-    /// <summary>Amount of fuel carried.</summary>
-    private float m_fFuelLoad;
+    private ShipInfo m_info;
 
 	/// <summary>
 	/// Distance, in light years, FTL travel with current fuel load. This is the fuel load, divided by the ship's usage when running at FTL, multiplied by speed.
 	/// </summary>
 	/// <value>The FTL range.</value>
 	public float FTLRange {
-		get { return m_fFuelLoad * FTLSpeed; }
+		get { return m_info.FuelLoad / FTLFuelUseage * FTLSpeed; }
 	}
 
 	/// <summary>
 	/// Time that the ship can stay in continuous FTL, in game seconds
 	/// </summary>
 	/// <value>The FTL time.</value>
-	public float FTLTime {
-		get { return 15552000; /* 180 days */}
+	private float FTLTime {
+        get { return m_info.FTLTime; }
 	}
 
 	/// <summary>
 	/// FTL speed, ly/sec (game)
 	/// </summary>
 	/// <value>The FTL speed.</value>
-	public float FTLSpeed {
-		get { return 0.0001f; }
+	private float FTLSpeed {
+        get { return m_info.FTLSpeed; }
 	}
+
+    /// <summary>
+    /// Fuel usage while in FTL, units/sec
+    /// </summary>
+    private float FTLFuelUseage {
+        get { return m_info.FTLFuelUseage; }
+    }
 
     /// <summary>The ship's current destination</summary>
     private Star m_currentDestination;
@@ -54,7 +64,7 @@ public class Ship : MonoBehaviour {
 
     void Awake() {
         m_instance = this;
-        m_fFuelLoad = 400 / FTLSpeed;
+        m_info = new ShipInfo();
     }
 
     // Use this for initialization
@@ -82,6 +92,7 @@ public class Ship : MonoBehaviour {
         }
 
         float fStep = FTLSpeed * SectorGenerator.UNIT_PER_LY * fDelta;
+        m_info.UseFuel(FTLFuelUseage * fDelta);
 
         Vector3 heading = m_currentDestination.transform.position - m_transform.position;
         m_fDistanceRemaining = heading.magnitude / SectorGenerator.UNIT_PER_LY;
@@ -99,6 +110,7 @@ public class Ship : MonoBehaviour {
         }
 
         m_transform.position += heading;
+        DrawFuelRange();
 	}
 
     /// <summary>
@@ -165,8 +177,8 @@ public class Ship : MonoBehaviour {
     private void _EnterFTL(Star target) {
         m_currentDestination = target;
         m_bInJump = true;
-        m_fuelRangeIndicator.gameObject.SetActive(false);
-        TimeManager.TimeScale = 10000;
+        //m_fuelRangeIndicator.gameObject.SetActive(false);
+        TimeManager.TimeScale = 100000;
         Mothership.UI.UI.SetJumpDestination();
     }
 
@@ -175,7 +187,7 @@ public class Ship : MonoBehaviour {
     /// </summary>
     private void _ExitFTL() {
         m_bInJump = false;
-        Galaxy.ShowSolarSystem(m_currentDestination);
+        Galaxy.ShowSolarSystem(m_info, m_currentDestination);
         TimeManager.Pause();
     }
 
@@ -185,5 +197,21 @@ public class Ship : MonoBehaviour {
     private void DrawFuelRange() {
         m_fuelRangeIndicator.gameObject.SetActive(true);
         m_fuelRangeIndicator.DrawCircle(Vector3.zero, FTLRange * SectorGenerator.UNIT_PER_LY, 0.02f);
+    }
+
+    /// <summary>
+    /// Returns parameters about the distance from the ship to a target
+    /// </summary>
+    /// <param name="target">The target to calculate</param>
+    /// <param name="fDistance">Distance to the target, in ly</param>
+    /// <param name="fTime">Time to the target at current jump speed, in seconds</param>
+    public static void GetParamsTo(Star target, out float fDistance, out double fTime) {
+
+        // Distance
+        Vector3 heading = target.transform.position - m_instance.m_transform.position;
+        fDistance = heading.magnitude / SectorGenerator.UNIT_PER_LY;
+
+        // Time
+        fTime = fDistance / m_instance.FTLSpeed;
     }
 }

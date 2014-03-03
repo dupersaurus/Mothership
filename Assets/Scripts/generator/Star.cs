@@ -117,46 +117,47 @@ public class Star : MonoBehaviour {
     public void Setup(StarData data) {
         m_transform = transform;
         m_material = GetComponent<MeshRenderer>().material;
+        m_info = data;
 
         switch (data.Class) {
             case StarData.SpectralClass.O:
-                m_material.color = m_spectralColors[(int)StarData.SpectralClass.O];
+                m_material.color = GetColor();
                 m_transform.localScale = new Vector3(0.2f, 0.2f, 1);
                 m_fRadius = StarData.RADIUS_TO_AU * 6.6f;
                 break;
 
             case StarData.SpectralClass.B:
-                m_material.color = m_spectralColors[(int)StarData.SpectralClass.B];
+                m_material.color = GetColor();
                 m_transform.localScale = new Vector3(0.15f, 0.15f, 1);
                 m_fRadius = StarData.RADIUS_TO_AU * 4;
                 break;
 
             case StarData.SpectralClass.A:
-                m_material.color = m_spectralColors[(int)StarData.SpectralClass.A];
+                m_material.color = GetColor();
                 m_transform.localScale = new Vector3(0.13f, 0.13f, 1);
                 m_fRadius = StarData.RADIUS_TO_AU * 1.6f;
                 break;
 
             case StarData.SpectralClass.F:
-                m_material.color = m_spectralColors[(int)StarData.SpectralClass.F];
+                m_material.color = GetColor();
                 m_transform.localScale = new Vector3(0.10f, 0.10f, 1);
                 m_fRadius = StarData.RADIUS_TO_AU * 1.2f;
                 break;
 
             case StarData.SpectralClass.G:
-                m_material.color = m_spectralColors[(int)StarData.SpectralClass.G];
+                m_material.color = GetColor();
                 m_transform.localScale = new Vector3(0.08f, 0.08f, 1);
                 m_fRadius = StarData.RADIUS_TO_AU;
                 break;
 
             case StarData.SpectralClass.K:
-                m_material.color = m_spectralColors[(int)StarData.SpectralClass.K];
+                m_material.color = GetColor();
                 m_transform.localScale = new Vector3(0.06f, 0.06f, 1);
                 m_fRadius = StarData.RADIUS_TO_AU * 0.6f;
                 break;
 
             case StarData.SpectralClass.M:
-                m_material.color = m_spectralColors[(int)StarData.SpectralClass.M];
+                m_material.color = GetColor();
                 m_transform.localScale = new Vector3(0.04f, 0.04f, 1);
                 m_fRadius = StarData.RADIUS_TO_AU * 0.2f;
                 break;
@@ -166,6 +167,10 @@ public class Star : MonoBehaviour {
             m_material.color = Color.magenta;
             m_transform.localScale = new Vector3(0.3f, 0.3f, 1);
         }*/
+    }
+
+    public Color GetColor() {
+        return m_spectralColors[(int)m_info.m_spectralClass];
     }
 
     /// <summary>
@@ -185,8 +190,8 @@ public class Star : MonoBehaviour {
             fLastRadius += (Random.value * 2 + 1) + Random.value * 1;
 
             bodies[i] = new PlanetInfo(Seed + i);
-            bodies[i].MajorAxis = fLastRadius * SolarSystem.UNIT_TO_AU;
-            bodies[i].MinorAxis = fLastRadius * SolarSystem.UNIT_TO_AU;
+            bodies[i].MajorAxis = fLastRadius * SolarSystem.UNIT_PER_AU;
+            bodies[i].MinorAxis = fLastRadius * SolarSystem.UNIT_PER_AU;
         }
 
         return bodies;

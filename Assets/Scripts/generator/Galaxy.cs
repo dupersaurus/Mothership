@@ -81,8 +81,8 @@ public class Galaxy : MonoBehaviour {
         UI.SetMode(UI.Mode.Sector);
 
         // TODO real ship handling
-        Ship.SetEnabled(true);
-        Ship.MoveTo(new Vector3(pos.x, pos.y, -0.05f));
+        GalacticShip.SetEnabled(true);
+        GalacticShip.MoveTo(new Vector3(pos.x, pos.y, -0.05f));
 
         return pos;
     }
@@ -129,20 +129,20 @@ public class Galaxy : MonoBehaviour {
     // ************************************************************************************************************
 
     public static void JumpToSolarSystem(Star star) {
-        Ship.EnterFTL(star);
+        GalacticShip.EnterFTL(star);
     }
 
-    public static void ShowSolarSystem(Star star) {
-        m_instance._ShowSolarSystem(star);
+    public static void ShowSolarSystem(ShipInfo player, Star star) {
+        m_instance._ShowSolarSystem(player, star);
     }
 
-    private void _ShowSolarSystem(Star star) {
+    private void _ShowSolarSystem(ShipInfo player, Star star) {
         m_showSystemOf = star;
 
         Vector3 pos = m_showSystemOf.Position;
         m_currentSystem = (Instantiate(Resources.Load("Solar System")) as GameObject).GetComponent<SolarSystem>();
         m_currentSystem.transform.position = new Vector3(pos.x, pos.y, 200);
-        m_currentSystem.Setup(m_showSystemOf);
+        m_currentSystem.Setup(m_showSystemOf, player);
 
         Vector3 target = star.Position;
         target.z = -1;
